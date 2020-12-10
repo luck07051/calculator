@@ -1,12 +1,13 @@
 #include <iostream>
+#include <fstream>
 #include <stack>
 #include <vector>
 #include <string>
 #include <cmath>
 #include <cctype>
-
 using namespace std;
 
+const string file_name {"temp.txt"};
 
 int priority(char a);
 void calculate(stack<double> &va, char op);
@@ -19,66 +20,99 @@ int main()
     char letter;
     double number;
 
+    // keyborad to txt
+    fstream fout {file_name, ios::out | ios::trunc};
+    string input;
     cout << "Enter expression: ";
-    while (cin.peek() != '\n')
+    getline(cin, input);
+    fout << input;
+    fout.close();
+
+
+    fstream file {file_name, ios::in};
+    unsigned int variable_number = 0;
+    do
     {
-        if (cin.peek() == ' ')
+        while (file.peek() != EOF)
         {
-            cin.get();
-        }
-        else if (isdigit(cin.peek()))
-        {
-            cin >> number;
-            value.push(number);
-        }
-        else
-        {
-            cin >> letter;
-            switch (letter)
+            // delete ' '
+            if (file.peek() == ' ')
             {
-                case '+': case '-': case '*': case '/': case '^':
-                    while (!operand.empty() && priority(letter) <= priority(operand.top()))
-                    {
-                        calculate(value, operand.top());
-                        operand.pop();
-                    }
-                    operand.push(letter);
-                    break;
+                file.get();
+            }
+            //
+            else if (isdigit(file.peek()))
+            {
+                file >> number;
+                value.push(number);
+            }
+            //
+            else
+            {
+                file >> letter;
+                switch (letter)
+                {
+                    case '+': case '-': case '*': case '/': case '^':
+                        while (!operand.empty() && priority(letter) <= priority(operand.top()))
+                        {
+                            calculate(value, operand.top());
+                            operand.pop();
+                        }
+                        operand.push(letter);
+                        break;
 
-                case 'l':
-                    cin >> letter;
-                    if (letter == 'n')
-                    {
+                    case 'l':
+                        file >> letter;
+                        if (letter == 'n')
+                        {
+                            file >> number;
+                            value.push(log(number));
+                        }
+                        break;
+
+                    default:
+                        ++variable_number;
+                        cout << letter << ": ";
                         cin >> number;
-                        value.push(log(number));
-                    }
-                    break;
+                        while (!cin)
+                        {
+                            cin.clear();
+                            cin.sync();
+                            return 0;
+                        }
+                        value.push(number);
+                        break;
 
-                case '(':
-                    operand.push(letter);
-                    break;
+                    case '(':
+                        operand.push(letter);
+                        break;
 
-                case ')':
-                    while (operand.top() != '(')
-                    {
-                        calculate(value, operand.top());
+                    case ')':
+                        while (operand.top() != '(')
+                        {
+                            calculate(value, operand.top());
+                            operand.pop();
+                        }
                         operand.pop();
-                    }
-                    operand.pop();
-                    break;
+                        break;
+                }
             }
         }
-    }
-    while (!operand.empty())
-    {
-        calculate(value, operand.top());
-        operand.pop();
-    }
+        while (!operand.empty())
+        {
+            calculate(value, operand.top());
+            operand.pop();
+        }
 
-    cout << "Solution: " << value.top() << endl;
+        cout << "Solution: " << value.top() << endl;
+        value.pop();
 
+        file.clear();
+        file.seekg(0, ios::beg);
 
+    } while (variable_number != 0);
 
+    file.close();
     return 0;
 }
 
