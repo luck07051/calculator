@@ -62,22 +62,20 @@ int main()
                         break;
 
                     case 'l':
-                        file >> letter;
-                        if (letter == 'n')
+                        if (file.peek() == 'n')
                         {
+                            file.get();
                             file >> number;
                             value.push(log(number));
+                            break;
                         }
-                        break;
 
                     default:
                         ++variable_number;
                         cout << letter << ": ";
                         cin >> number;
-                        while (!cin)
+                        if (!cin)
                         {
-                            cin.clear();
-                            cin.sync();
                             return 0;
                         }
                         value.push(number);
