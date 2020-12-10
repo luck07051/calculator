@@ -19,6 +19,7 @@ int main()
     char letter;
     double number;
 
+    cout << "Enter expression: ";
     while (cin.peek() != '\n')
     {
         if (cin.peek() == ' ')
@@ -44,6 +45,15 @@ int main()
                     operand.push(letter);
                     break;
 
+                case 'l':
+                    cin >> letter;
+                    if (letter == 'n')
+                    {
+                        cin >> number;
+                        value.push(log(number));
+                    }
+                    break;
+
                 case '(':
                     operand.push(letter);
                     break;
@@ -65,7 +75,7 @@ int main()
         operand.pop();
     }
 
-    cout << value.top() << endl;
+    cout << "Solution: " << value.top() << endl;
 
 
 
