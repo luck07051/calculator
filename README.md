@@ -1,2 +1,2 @@
-#calculator
-just a c++ practice
+# calculator
+'just a c++ practice'
