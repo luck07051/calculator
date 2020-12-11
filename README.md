@@ -1,2 +1,2 @@
 # calculator
-'just a c++ practice'
+`just a c++ practice`

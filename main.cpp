@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stack>
 #include <vector>
+#include <map>
 #include <string>
 #include <cmath>
 #include <cctype>
@@ -11,22 +12,27 @@ const string file_name {"temp.txt"};
 
 int priority(char a);
 void calculate(stack<double> &va, char op);
+bool is_operand(char ch);
 
 int main()
 {
     stack<char> operand;
     stack<double> value;
+    map<char, double> variable;
 
+    // temp variable
     char letter;
     double number;
 
     // keyborad to txt
-    fstream fout {file_name, ios::out | ios::trunc};
-    string input;
-    cout << "Enter expression: ";
-    getline(cin, input);
-    fout << input;
-    fout.close();
+    {
+        fstream fout {file_name, ios::out | ios::trunc};
+        string input;
+        cout << "Enter expression: ";
+        getline(cin, input);
+        fout << input;
+        fout.close();
+    }
 
 
     fstream file {file_name, ios::in};
@@ -40,13 +46,18 @@ int main()
             {
                 file.get();
             }
-            //
+            // for number
             else if (isdigit(file.peek()))
             {
                 file >> number;
                 value.push(number);
+
+                if (file.peek() != EOF && !is_operand(file.peek()))
+                {
+                    operand.push('*');
+                }
             }
-            //
+            // for character
             else
             {
                 file >> letter;
@@ -61,25 +72,38 @@ int main()
                         operand.push(letter);
                         break;
 
+                        // special character
                     case 'l':
-                        if (file.peek() == 'n')
+                        if (file.peek() == 'n') // ln
                         {
                             file.get();
-                            file >> number;
-                            value.push(log(number));
+                            operand.push('l');
                             break;
                         }
 
                     default:
-                        ++variable_number;
-                        cout << letter << ": ";
-                        cin >> number;
-                        if (!cin)
+                        if (variable.find(letter) == variable.end())
                         {
-                            return 0;
+                            ++variable_number;
+                            cout << letter << ": ";
+                            cin >> number;
+                            if (!cin)
+                            {
+                                return 0;
+                            }
+                            variable[letter] = number;
+                            value.push(number);
                         }
-                        value.push(number);
+                        else
+                        {
+                            value.push(variable[letter]);
+                        }
+                        if (file.peek() != EOF && !is_operand(file.peek()))
+                        {
+                            operand.push('*');
+                        }
                         break;
+
 
                     case '(':
                         operand.push(letter);
@@ -104,6 +128,7 @@ int main()
 
         cout << "Solution: " << value.top() << endl;
         value.pop();
+        variable.clear();
 
         file.clear();
         file.seekg(0, ios::beg);
@@ -135,6 +160,14 @@ void calculate(stack<double> &va, char op)
     double a, b;
     b = va.top();
     va.pop();
+
+    switch (op)
+    {
+        case 'l':
+            va.push(log(b));
+            return;
+    }
+
     a = va.top();
     va.pop();
 
@@ -142,18 +175,30 @@ void calculate(stack<double> &va, char op)
     {
         case '+':
             va.push(a+b);
-            break;
+            return;
         case '-':
             va.push(a-b);
-            break;
+            return;
         case '*':
             va.push(a*b);
-            break;
+            return;
         case '/':
             va.push(a/b);
-            break;
+            return;
         case '^':
             va.push(pow(a, b));
-            break;
+            return;
+    }
+}
+
+bool is_operand(char ch)
+{
+    switch (ch)
+    {
+        case '+': case '-': case '*': case '/': case '^': case ')':
+            return true;
+
+        default:
+            return false;
     }
 }
